@@ -25,7 +25,7 @@ import torch.optim as optim
 from sklearn.random_projection import GaussianRandomProjection, SparseRandomProjection
 
 class Detect:
-    def __init__(self, reference_num, input_dim, action_dim, num_samples, reference=200,  device='cpu',title = '', num_iter=10, one_hot=True, normalized=True, demo=True):
+    def __init__(self, reference_num, input_dim, action_dim, num_samples, reference=200,  device='cpu',title = '', num_iter=10, one_hot=True, normalized=True, demo=True, sars_flag = False):
         assert reference is not None, f'Reference not found.'
         self.ref = None
         self.device = device
@@ -38,7 +38,7 @@ class Detect:
         self.input_dim = input_dim
         self.reference_num = reference_num
         self.action_dim = action_dim
-        
+        self.sars_flag = sars_flag
 
         self.embeddings = []
         self.rewards = []
@@ -56,7 +56,10 @@ class Detect:
         '''A setter method, for manually setting and updating the reference for calculating
         the tasks embeddings.'''
         torch.manual_seed(98)
-        reference = torch.rand(some_reference_num, (a_task_observation_dim + some_action_dim + 1))#Plus one which is the reward.
+        if self.sars_flag:
+            reference = torch.rand(some_reference_num, (a_task_observation_dim + some_action_dim + 1 + a_task_observation_dim)) # s, a, r, s'
+        else:
+            reference = torch.rand(some_reference_num, (a_task_observation_dim + some_action_dim + 1))#Plus one which is the reward.
         self.ref = reference
 
     def get_reference(self):
@@ -74,7 +77,11 @@ class Detect:
 
     def precalculate_embedding_size(self, a_reference_num, an_inputdim, some_action_dim):
         '''A method for calculating the embedding dimension '''
-        pre_calc_embedding_size = a_reference_num * (an_inputdim + some_action_dim + 1)#Plus one which is the reward.
+        if self.sars_flag:
+            pre_calc_embedding_size = a_reference_num * (an_inputdim + some_action_dim + 1 + an_inputdim) # s, a, r, s'
+        else:
+            pre_calc_embedding_size = a_reference_num * (an_inputdim + some_action_dim + 1)# s, a, r
+       
         return pre_calc_embedding_size
 
     def preprocess_dataset(self, X, some_task_action_space_size):
@@ -96,14 +103,26 @@ class Detect:
         #print("QQQQQQQQQQQQ:", q)
         #print("FIRST X:", X)
 
-        img = X[:,:self.input_dim]
-        act = X[:,self.input_dim:-1]
-        reward = X[:,-1].unsqueeze(1)
+        if self.sars_flag:
+            state = X[:,:self.input_dim]
+            act = X[:,self.input_dim:-(self.input_dim+1)]
+            reward = X[:,-(self.input_dim+1)].unsqueeze(1)
+            next_state = X[:,-self.input_dim:]
+            # also normalize next_state. state is already normalized below
+            if self.normalized:
+                next_state_mean = torch.mean(next_state.float())
+                next_state_std = torch.std(next_state.float())
+                next_state = (next_state.float()-next_state_mean)/next_state_std
+        else:
+            state = X[:,:self.input_dim]
+            act = X[:,self.input_dim:-1]
+            reward = X[:,-1].unsqueeze(1)
 
         if self.normalized:
-            mean = torch.mean(img.float())
-            std = torch.std(img.float())
-            img = (img.float()-mean)/std
+            state_mean = torch.mean(state.float())
+            state_std = torch.std(state.float())
+            state = (state.float()-state_mean)/state_std
+
         if self.oh:
             act_oh = torch.zeros(X.shape[0], some_task_action_space_size)
       
@@ -114,8 +133,11 @@ class Detect:
             #lb = preprocessing.LabelBinarizer()
             #lb.fit(act_.cpu())
             #act = lb.transform(act_.cpu())
-        return torch.cat((img, act, reward), dim=1).float()
-        # return X.float()
+
+        if self.sars_flag:
+            return torch.cat((state, act, reward, next_state), dim=1).float()
+        else:
+            return torch.cat((state, act, reward), dim=1).float()
 
     def lwe(self, X, some_task_action_space_size):
         '''Calculates the Embedding for a given Data-Batch of SAR

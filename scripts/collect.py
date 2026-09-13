@@ -10,14 +10,14 @@ def collect_tuples(env, policy, num_episodes=1, max_steps=None, task=None):
     transitions = []
     for _ in range(num_episodes):
         env.reset_task(task=task)
-        obs = env.reset()
+        obs, _ = env.reset()
 
         for _ in range(max_steps):
             action = int(policy(obs, env.get_task()))
-            next_obs, reward, done, info = env.step(action)
+            next_obs, reward, terminated, truncated, info = env.step(action)
             transitions.append((obs.copy(), action, float(reward), next_obs.copy()))
             obs = next_obs
-            if done:
+            if terminated or truncated:
                 break
 
     return transitions

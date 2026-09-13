@@ -1,11 +1,11 @@
 import itertools
 import random
 
-import gym
+import gymnasium as gym
 import matplotlib.pyplot as plt
 from matplotlib.patches import Rectangle
 import numpy as np
-from gym import spaces
+from gymnasium import spaces
 from PIL import Image
 from io import BytesIO
 
@@ -17,7 +17,6 @@ class GridNavi(gym.Env):
             assert not ring and hall_with_door_every is None, "Random start location not supported for ring or hall"
         super(GridNavi, self).__init__()
 
-        self.seed()
         self.num_cells = num_cells
         self.num_states = num_cells ** 2 # should be  num_cells * 2 if hallway, but this messes up visualization 
         self.new_state_r = new_state_r # reward for looking at a potential goal
@@ -88,10 +87,11 @@ class GridNavi(gym.Env):
     def get_task(self):
         return self._goal.copy()
 
-    def reset(self):
+    def reset(self, *, seed=None, options=None):
+        super().reset(seed=seed)
         self.step_count = 0
         self._env_state = np.array(random.choice(self.possible_goals)) if self.starting_state is None else np.array(self.starting_state)
-        return self._env_state.copy()
+        return self._env_state.copy(), {}
 
     def state_transition(self, action):
         """
@@ -124,7 +124,8 @@ class GridNavi(gym.Env):
             action = action[0]
         assert self.action_space.contains(action)
 
-        done = False
+        terminated = False
+        truncated = False
 
         # perform state transition
         state = self.state_transition(action)
@@ -141,7 +142,7 @@ class GridNavi(gym.Env):
         # check if maximum step limit is reached
         self.step_count += 1
         if self.step_count >= self._max_episode_steps:
-            done = True
+            truncated = True
 
         # compute reward
         if self._env_state[0] == self._goal[0] and self._env_state[1] == self._goal[1]:
@@ -160,7 +161,7 @@ class GridNavi(gym.Env):
             if self._env_state[0] == self.starting_state[0] and self._env_state[1] == self.starting_state[1]:
                 state = self._goal[:]  # show goal as obs
 
-        return state.copy(), reward, done, info
+        return state.copy(), reward, terminated, truncated, info
 
     def render(self):
         num_cells_x = int(self.observation_space.high[0] + 1)
