@@ -11,6 +11,7 @@ from environments.parallel_envs import make_vec_envs
 from models.policy import Policy
 from utils import evaluation as utl_eval
 from utils import helpers as utl
+from utils.hn_weight_divergence import HNWeightDivergenceTracker
 from utils.tb_logger import TBLogger
 from vae import VaribadVAE
 
@@ -71,6 +72,17 @@ class MetaLearner:
         self.vae = VaribadVAE(self.args, self.logger, lambda: self.iter_idx, task_decoder_dim=task_decoder_dim)
         self.policy_storage = self.initialise_policy_storage(hidden_size=self.vae.encoder.agg.state_size)
         self.policy.set_vae_optimizer(self.vae.optimiser_vae) # do this after initializing policy, instead of passing to init, to get self.policy.bn_param_dim
+
+        # compute divergence of hn generated policy weights
+        self.hn_div_tracker = None
+        if getattr(self.args, 'log_hn_weight_div', False) and self.args.use_hypernet:
+            num_cells = int(self.envs.get_env_attr('num_cells'))
+            self.hn_div_tracker = HNWeightDivergenceTracker(
+                args=self.args,
+                logger=self.logger,
+                actor_critic=self.policy.actor_critic,
+                num_cells=num_cells,
+            )
 
     def initialise_policy_storage(self, hidden_size):
         return OnlineStorage(args=self.args,
@@ -228,6 +240,22 @@ class MetaLearner:
                 masks_done = torch.FloatTensor([[0.0] if done_ else [1.0] for done_ in done]).to(device)
                 # bad_mask is true if episode ended because time limit was reached
                 bad_masks = torch.FloatTensor([[0.0] if 'bad_transition' in info.keys() else [1.0] for info in infos]).to(device)
+
+                # compute and store the policy weight vectors at the end of the meta-episode
+                if self.hn_div_tracker is not None and done.any():
+                    z = utl.get_latent_for_policy(
+                        self.args,
+                        latent_sample=latent_sample,
+                        latent_mean=latent_mean,
+                        latent_logvar=latent_logvar,
+                    )
+                    goals = np.asarray(self.envs.get_task())
+                    if goals.ndim == 1:
+                        goals = goals.reshape(1, -1)
+                    done_idx = done.squeeze(-1).nonzero(as_tuple=False).view(-1)
+                    for p in done_idx.tolist():
+                        z_p = z[p] if z.dim() > 1 else z
+                        self.hn_div_tracker.record(z_p, goals[p])
 
                 with torch.no_grad():
                     # compute next embedding (for next loop and/or value prediction bootstrap)
@@ -490,6 +518,9 @@ class MetaLearner:
                 #     utl.save_obj(obs_rms, save_path, f"env_obs_rms{idx_label}")
 
         # --- log some other things ---
+
+        if self.hn_div_tracker is not None and (self.iter_idx % self.args.log_interval == 0):
+            self.hn_div_tracker.flush(self.iter_idx)
 
         if (self.iter_idx % self.args.log_interval == 0) and (train_stats is not None):
 

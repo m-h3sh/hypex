@@ -111,12 +111,17 @@ class GridNavi(gym.Env):
         self.goals_unchecked = set(self.possible_goals)
 
         # reset the environment state
-        self._env_state = np.array(
-            random.choice(self.possible_goals) if starting_state is None else self.starting_state,
-            dtype=np.float32,
-        )
+        self._env_state = self._sample_start()
         # reset the goal
         self._goal = self.reset_task()
+
+    def _sample_start(self):
+        """Fixed start, or uniform over all cells when starting_state is None."""
+        if self.starting_state is not None:
+            return np.array(self.starting_state, dtype=np.float32)
+        x = random.randrange(self.num_cells)
+        y = random.randrange(self.num_cells)
+        return np.array([x, y], dtype=np.float32)
 
     def reset_task(self, task=None):
         if task is None:
@@ -132,10 +137,7 @@ class GridNavi(gym.Env):
     def reset(self, *, seed=None, options=None):
         super().reset(seed=seed)
         self.step_count = 0
-        self._env_state = np.array(
-            random.choice(self.possible_goals) if self.starting_state is None else self.starting_state,
-            dtype=np.float32,
-        )
+        self._env_state = self._sample_start()
         return self._env_state.copy(), {}
 
     def state_transition(self, action):

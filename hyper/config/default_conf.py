@@ -10,6 +10,8 @@ def get_args(rest_args):
     parser.add_argument('--full_transitions', type=boolean_argument, default=False, help='Instead of aggregating ars\' in memory, include previous state sars\'. Note that the very first decision will still be made from the prior, without conditioning on any input.')
     
     parser.add_argument('--use_hypernet', type=boolean_argument, default=False, help='whether to use a hypernetwork to condition policy on task embedding/latent')
+    parser.add_argument('--log_hn_weight_div', type=boolean_argument, default=False,
+                        help='Log HN policy-weight mean pairwise L2 per log_interval')
     parser.add_argument('--hypernet_input', type=str, default='task_embed', help='\'task_embed\' or \'latent\' will condition hypernet on task embedding or latent respectively')
     parser.add_argument('--init_hyper_for_policy', type=boolean_argument, default=True, help='whether to init the hypernetwork head so that it produces similar initial policy weights')
     parser.add_argument('--init_adjust_weights', type=boolean_argument, default=True, help='whether to adjust hypernet weights so that init_hyper_for_policy works')

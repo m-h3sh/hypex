@@ -11,6 +11,8 @@ MUJOCO_LOG.TXT
 
 
 logs/
+logs_sparse/
+logs_*/
 scripts/
 docker/
 video_*/

@@ -381,13 +381,14 @@ register(
     kwargs={'num_cells': 5, 'num_steps': 15, 'distance_reward':True},
 )
 
-# exp1/exp2 task distributions (5x5, dense distance reward, 15 steps)
-# Start at grid center so corner goal clusters do not coincide with the spawn.
+# exp1/exp2 task distributions (6x6, sparse reward, random start)
+# Goal sets match scripts/exp2.ipynb (incl. (0,0) in TD3/TD4).
+# Sparse: +1 on goal, else -0.1 (distance_reward=False).
 _TASK_DIST_KWARGS = dict(
-    num_cells=5,
-    num_steps=15,
-    distance_reward=True,
-    starting_state=(2.0, 2.0),
+    num_cells=6,
+    num_steps=20,
+    distance_reward=False,
+    starting_state=None,
 )
 for _dist_id in range(1, 7):
     register(
