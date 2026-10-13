@@ -41,12 +41,12 @@ def main():
         args, unkown_args = args_grid_varibad.get_args(rest_args)
         args.env_name = f'GridNavi-TaskDist{dist_id}-v0'
     elif env.startswith('gridworld_orig_taskdist'):
-        # TaskDist goals + paper MDP (sparse, start (0,0))
+        # 6x6 sparse, start (0,0); 1–6 clusters, 7=32 goals, 8=all cells minus start
         dist_id = int(env.replace('gridworld_orig_taskdist', ''))
         args, unkown_args = args_grid_varibad.get_args(rest_args)
         args.env_name = f'GridNavi-Orig-TaskDist{dist_id}-v0'
     elif env == 'gridworld_orig':
-        # Paper GridNavi defaults (same MDP as GridNavi-v0 / gridworld_varibad)
+        # 6x6 sparse, start (0,0), all goals except start neighborhood
         args, unkown_args = args_grid_varibad.get_args(rest_args)
         args.env_name = 'GridNavi-Orig-v0'
     elif env == 'GridNavi-dense':

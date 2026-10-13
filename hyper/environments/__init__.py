@@ -390,30 +390,35 @@ _TASK_DIST_KWARGS = dict(
     distance_reward=False,
     starting_state=None,
 )
-for _dist_id in range(1, 7):
+# 6x6, sparse, random start. Dist 1–6: 4-goal clusters; 7: all but start neigh;
+# 8: all 36 cells.
+for _dist_id in range(1, 9):
     register(
         f'GridNavi-TaskDist{_dist_id}-v0',
         entry_point='environments.navigation.gridworld:GridNavi',
         kwargs={**_TASK_DIST_KWARGS, 'task_dist': _dist_id},
     )
 
+# Paper-style MDP: 6x6, sparse (+1 / -0.1), fixed start (0,0).
+# Orig-v0: all goals except start neighborhood (same as TaskDist 7).
+# TaskDist 1–8: same goal_positions on this Orig MDP (start cell dropped if present).
 register(
     'GridNavi-Orig-v0',
     entry_point='environments.navigation.gridworld_orig:GridNaviOrig',
     kwargs={
-        'num_cells': 5,
-        'num_steps': 15,
+        'num_cells': 6,
+        'num_steps': 20,
         'starting_state': (0.0, 0.0),
         'distance_reward': False,
     },
 )
 _ORIG_TASK_DIST_KWARGS = dict(
-    num_cells=5,
-    num_steps=15,
+    num_cells=6,
+    num_steps=20,
     starting_state=(0.0, 0.0),
     distance_reward=False,
 )
-for _dist_id in range(1, 7):
+for _dist_id in range(1, 9):
     register(
         f'GridNavi-Orig-TaskDist{_dist_id}-v0',
         entry_point='environments.navigation.gridworld_orig:GridNaviOrig',

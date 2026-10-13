@@ -32,6 +32,15 @@ def goal_positions(option, num_cells):
     elif option == 6:
         # bottom-right corner cluster
         pos = [(num_cells - 1, 0), (num_cells - 1, 1), (num_cells - 2, 0), (num_cells - 2, 1)]
+    elif option == 7:
+        # paper-style: all cells except 3×3 neighborhood of start (0,0)
+        pos = [(i, j) for i in range(num_cells) for j in range(num_cells)]
+        for p in ((0, 0), (0, 1), (1, 0), (1, 1)):
+            if p in pos:
+                pos.remove(p)
+    elif option == 8:
+        # all cells (random-start / full-grid support)
+        pos = [(i, j) for i in range(num_cells) for j in range(num_cells)]
     else:
         raise ValueError(f"Unknown goal_positions option: {option}")
     return pos

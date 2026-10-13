@@ -7,8 +7,8 @@ from environments.navigation.gridworld import GridNavi, goal_positions
 class GridNaviOrig(GridNavi):
     def __init__(
         self,
-        num_cells=5,
-        num_steps=15,
+        num_cells=6,
+        num_steps=20,
         starting_state=(0.0, 0.0),
         distance_reward=False,
         task_dist=None,
