@@ -1,5 +1,84 @@
 from gymnasium.envs.registration import register
 
+# Mujoco
+# ----------------------------------------
+
+# - randomised reward functions
+
+register(
+    'AntDir-v0',
+    entry_point='environments.wrappers:mujoco_wrapper',
+    kwargs={'entry_point': 'environments.mujoco.ant_dir:AntDirEnv',
+            'max_episode_steps': 200},
+    max_episode_steps=200
+)
+
+register(
+    'AntDir2D-v0',
+    entry_point='environments.wrappers:mujoco_wrapper',
+    kwargs={'entry_point': 'environments.mujoco.ant_dir:AntDir2DEnv',
+            'max_episode_steps': 200},
+    max_episode_steps=200,
+)
+
+register(
+    'AntGoal-v0',
+    entry_point='environments.wrappers:mujoco_wrapper',
+    kwargs={'entry_point': 'environments.mujoco.ant_goal:AntGoalEnv',
+            'max_episode_steps': 200},
+    max_episode_steps=200
+)
+
+register(
+    'HalfCheetahDir-v0',
+    entry_point='environments.wrappers:mujoco_wrapper',
+    kwargs={'entry_point': 'environments.mujoco.half_cheetah_dir:HalfCheetahDirEnv',
+            'max_episode_steps': 200},
+    max_episode_steps=200
+)
+
+register(
+    'HalfCheetahVel-v0',
+    entry_point='environments.wrappers:mujoco_wrapper',
+    kwargs={'entry_point': 'environments.mujoco.half_cheetah_vel:HalfCheetahVelEnv',
+            'max_episode_steps': 200},
+    max_episode_steps=200
+)
+
+register(
+    'Hop-v0',
+    entry_point='environments.wrappers:mujoco_wrapper',
+    kwargs={'entry_point': 'environments.mujoco.half_cheetah_hop:HalfCheetahHopEnv',
+            'max_episode_steps': 200},
+    max_episode_steps=200
+)
+
+# - randomised dynamics
+
+register(
+    id='Walker2DRandParams-v0',
+    entry_point='environments.mujoco.rand_param_envs.walker2d_rand_params:Walker2DRandParamsEnv',
+    max_episode_steps=200
+)
+
+register(
+    id='HopperRandParams-v0',
+    entry_point='environments.mujoco.rand_param_envs.hopper_rand_params:HopperRandParamsEnv',
+    max_episode_steps=200
+)
+
+register(
+    id='HopWalk-v0',
+    entry_point='environments.mujoco.hop_walk:HopWalk',
+)
+
+register(
+    id='HopWalkNonpara-v0',
+    entry_point='environments.mujoco.hop_walk:HopWalk',
+    kwargs={'parametric': False,},
+)
+
+
 # # 2D Navigation
 # # ----------------------------------------
 #
@@ -25,6 +104,26 @@ register(
     'Semicircle-v0',
     entry_point='environments.navigation.point_robot:SemicircleEnv',
     max_episode_steps=10,
+)
+
+register(
+    'HalfCheetahDirSparseTen-v0',
+    entry_point='environments.wrappers:mujoco_wrapper',
+    kwargs={
+        'entry_point': 'environments.mujoco.half_cheetah_dir:HalfCheetahDirSparseEnv',
+        'sparse_dist': 10.0,
+        'max_episode_steps': 400,
+    },
+    max_episode_steps=400,
+)
+
+register(
+    'AntGoalSparseFour-v0',
+    entry_point='environments.wrappers:mujoco_wrapper',
+    kwargs={'entry_point': 'environments.mujoco.ant_goal_sparse:AntGoalSparseEnv',
+            'max_episode_steps': 200,
+            "level": 4},
+    max_episode_steps=200
 )
 
 

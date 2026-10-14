@@ -7,11 +7,26 @@ import gc
 import torch
 import torch.nn.functional as F
 
+from environments.mujoco import rand_param_envs
+# Same loader used by src/hyper (`from gym.envs.registration import load`)
+try:
+    from gym.envs.registration import load
+except ImportError:
+    from environments.mujoco.rand_param_envs.gym.envs.registration import load
+
 
 try:
+    # this is to suppress some warnings (in the newer mujoco versions)
     gym.logger.set_level(40)
 except AttributeError:
     pass
+
+
+def mujoco_wrapper(entry_point, **kwargs):
+    # Load the environment from its entry point
+    env_cls = load(entry_point)
+    env = env_cls(**kwargs)
+    return env
 
 
 class VariBadWrapper(gym.Wrapper):
@@ -42,7 +57,7 @@ class VariBadWrapper(gym.Wrapper):
             self.env.unwrapped.get_belief = lambda: None
         if not hasattr(self.env.unwrapped, 'num_states'):
             self.env.unwrapped.num_states = None
-        if not hasattr(self.env.unwrapped, '_max_episode_steps'):
+        if not hasattr(self.env.unwrapped, '_max_episode_steps'):  # Meta-World ML10/ML45
             self.env.unwrapped._max_episode_steps = env.max_path_length
 
         if episodes_per_task > 1:
@@ -51,7 +66,8 @@ class VariBadWrapper(gym.Wrapper):
             self.add_done_info = False
 
         if self.add_done_info:
-            if isinstance(self.observation_space, spaces.Box):
+            if isinstance(self.observation_space, spaces.Box) or isinstance(self.observation_space,
+                                                                            rand_param_envs.gym.spaces.box.Box):
                 if len(self.observation_space.shape) > 1:
                     raise ValueError  # can't add additional info for obs of more than 1D
                 self.observation_space = spaces.Box(

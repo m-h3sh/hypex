@@ -43,11 +43,12 @@ device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 def make_env(args, mode='train', train_task_override=None, **kwargs):
     env_id = args.env_name
-    make_kwargs = dict(disable_env_checker=True)
-    make_kwargs.update(kwargs)
+    # gymnasium working tree: disable env checker by default (src/hyper used classic gym)
+    kwargs = dict(kwargs)
+    kwargs.setdefault('disable_env_checker', True)
 
     if env_id.startswith('T-') or env_id.startswith('MC-'):
-        env = gym.make(env_id, **make_kwargs)
+        env = gym.make(env_id, **kwargs)
         env_type = "Maze"
     # OTHERWISE WE ASSUME ITS A GYM ENV
     else:
@@ -57,16 +58,20 @@ def make_env(args, mode='train', train_task_override=None, **kwargs):
                            num_cells=args.num_cells,
                            corridor_len=args.corridor_len,
                            num_steps=args.horizon,
-                           **make_kwargs)
-        elif args is not None and args.env_name == 'TreasureHunt-v0':
+                           **kwargs)
+        if args is not None and args.env_name == 'TreasureHunt-v0':
             env = gym.make(env_id,
                            max_episode_steps=args.max_episode_steps,
                            mountain_height=args.mountain_height,
                            treasure_reward=args.treasure_reward,
                            timestep_penalty=args.timestep_penalty,
-                           **make_kwargs)
+                           **kwargs)
+        elif args is not None and args.env_name == 'AntGoalSparse-v0':
+            env = gym.make(env_id,
+                           level=args.level,
+                           **kwargs)
         else:
-            env = gym.make(env_id, **make_kwargs)
+            env = gym.make(env_id, **kwargs)
 
     return env, env_type
 

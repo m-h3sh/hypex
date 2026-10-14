@@ -14,6 +14,13 @@ from config.gridworld import \
     args_grid_oracle, args_grid_belief_oracle, args_grid_rl2, args_grid_varibad, args_TLN_varibad, \
     args_TLNP1_varibad, args_TLSP1_varibad, hall, args_MCLSO_varibad, args_MCLS_varibad, args_MCLSH_varibad, \
     args_MCLSN_varibad, args_plan
+from config.mujoco import \
+    args_cheetah_dir_oracle, args_cheetah_dir_rl2, args_cheetah_dir_varibad, \
+    args_cheetah_vel_oracle, args_cheetah_vel_rl2, args_cheetah_vel_varibad, args_cheetah_vel_avg, \
+    args_ant_dir_oracle, args_ant_dir_rl2, args_ant_dir_varibad, \
+    args_ant_goal_oracle, args_ant_goal_rl2, args_ant_goal_varibad, \
+    args_walker_oracle, args_walker_avg, args_walker_rl2, args_walker_varibad, args_hop_walk, args_hop_walk_nonpara, args_hop, \
+    args_sparse_ant_goal_varibad, args_sparse_cheetah_dir_varibad
 from metalearner import MetaLearner
 
 
@@ -22,9 +29,15 @@ def main():
     parser.add_argument('--env-type', default='gridworld_varibad')
     parser.add_argument('--debug', action='store_true', default=False,
                         help='enable actions for debugging that may be slow')
+    parser.add_argument('--hop_test', action='store_true', default=False,
+                        help='runs a test function in hop_walk env instead')
     args, rest_args = parser.parse_known_args()
     if args.debug:
         torch.autograd.set_detect_anomaly(True)
+    if args.hop_test:
+        from environments.mujoco.rand_param_envs.hop_walk import test
+        test()
+        exit()
     env = args.env_type
 
     # --- GridWorld ---
@@ -139,6 +152,63 @@ def main():
         args, unkown_args = args_semicircle_varibad.get_args(rest_args)
         args.env_name = 'Semicircle-v0'
 
+    # --- MUJOCO ---
+
+    # - AntDir -
+    elif env == 'ant_dir_oracle':
+        args, unkown_args = args_ant_dir_oracle.get_args(rest_args)
+    elif env == 'ant_dir_rl2':
+        args, unkown_args = args_ant_dir_rl2.get_args(rest_args)
+    elif env == 'ant_dir_varibad':
+        args, unkown_args = args_ant_dir_varibad.get_args(rest_args)
+    #
+    # - AntGoal -
+    elif env == 'ant_goal_oracle':
+        args, unkown_args = args_ant_goal_oracle.get_args(rest_args)
+    elif env == 'ant_goal_varibad':
+        args, unkown_args = args_ant_goal_varibad.get_args(rest_args)
+    elif env == 'ant_goal_rl2':
+        args, unkown_args = args_ant_goal_rl2.get_args(rest_args)
+    elif env == 'sparse_ant_goal_varibad':
+        args, unkown_args = args_sparse_ant_goal_varibad.get_args(rest_args)
+    #
+    # - CheetahDir -
+    elif env == 'cheetah_dir_oracle':
+        args, unkown_args = args_cheetah_dir_oracle.get_args(rest_args)
+    elif env == 'cheetah_dir_rl2':
+        args, unkown_args = args_cheetah_dir_rl2.get_args(rest_args)
+    elif env == 'cheetah_dir_varibad':
+        args, unkown_args = args_cheetah_dir_varibad.get_args(rest_args)
+    elif env == 'sparse_cheetah_dir_varibad':
+        args, unkown_args = args_sparse_cheetah_dir_varibad.get_args(rest_args)
+    #
+    # - CheetahVel -
+    elif env == 'cheetah_vel_oracle':
+        args, unkown_args = args_cheetah_vel_oracle.get_args(rest_args)
+    elif env == 'cheetah_vel_rl2':
+        args, unkown_args = args_cheetah_vel_rl2.get_args(rest_args)
+    elif env == 'cheetah_vel_varibad':
+        args, unkown_args = args_cheetah_vel_varibad.get_args(rest_args)
+    elif env == 'cheetah_vel_avg':
+        args, unkown_args = args_cheetah_vel_avg.get_args(rest_args)
+    #
+    # - Walker -
+    elif env == 'walker_oracle':
+        args, unkown_args = args_walker_oracle.get_args(rest_args)
+    elif env == 'walker_avg':
+        args, unkown_args = args_walker_avg.get_args(rest_args)
+    elif env == 'walker_rl2':
+        args, unkown_args = args_walker_rl2.get_args(rest_args)
+    elif env == 'walker_varibad':
+        args, unkown_args = args_walker_varibad.get_args(rest_args)
+    #
+    elif env == 'hop_walk':
+        args, unkown_args = args_hop_walk.get_args(rest_args)
+    elif env == 'hop_walk_nonpara':
+        args, unkown_args = args_hop_walk_nonpara.get_args(rest_args)
+    elif env == 'hop':
+        args, unkown_args = args_hop.get_args(rest_args)
+    #
     else:
         raise RuntimeError('Config not recognized.')
 
