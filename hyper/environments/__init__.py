@@ -41,9 +41,33 @@ register(
     'HalfCheetahVel-v0',
     entry_point='environments.wrappers:mujoco_wrapper',
     kwargs={'entry_point': 'environments.mujoco.half_cheetah_vel:HalfCheetahVelEnv',
-            'max_episode_steps': 200},
+            'max_episode_steps': 200,
+            'vel_low': 0.0,
+            'vel_high': 3.0},
     max_episode_steps=200
 )
+
+# CheetahVel task distributions (target velocity Uniform[low, high]).
+#   TaskDist1: Uniform[2.5, 3.0]  (high-speed band)
+#   TaskDist2: Uniform[0.5, 1.0]  (low-speed band)
+#   TaskDist3: Uniform[0.0, 3.0]  (full range; same as HalfCheetahVel-v0)
+_CHEEVEL_TASK_DISTS = {
+    1: (2.5, 3.0),
+    2: (0.5, 1.0),
+    3: (0.0, 3.0),
+}
+for _dist_id, (_vel_low, _vel_high) in _CHEEVEL_TASK_DISTS.items():
+    register(
+        f'HalfCheetahVel-TaskDist{_dist_id}-v0',
+        entry_point='environments.wrappers:mujoco_wrapper',
+        kwargs={
+            'entry_point': 'environments.mujoco.half_cheetah_vel:HalfCheetahVelEnv',
+            'max_episode_steps': 200,
+            'vel_low': _vel_low,
+            'vel_high': _vel_high,
+        },
+        max_episode_steps=200,
+    )
 
 register(
     'Hop-v0',

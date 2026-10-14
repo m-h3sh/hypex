@@ -189,6 +189,12 @@ def main():
         args, unkown_args = args_cheetah_vel_rl2.get_args(rest_args)
     elif env == 'cheetah_vel_varibad':
         args, unkown_args = args_cheetah_vel_varibad.get_args(rest_args)
+    elif env.startswith('cheetah_vel_taskdist'):
+        # e.g. --env-type cheetah_vel_taskdist1  →  HalfCheetahVel-TaskDist1-v0
+        #   1: Uniform[2.5, 3],  2: Uniform[0.5, 1],  3: Uniform[0, 3]
+        dist_id = int(env.replace('cheetah_vel_taskdist', ''))
+        args, unkown_args = args_cheetah_vel_varibad.get_args(rest_args)
+        args.env_name = f'HalfCheetahVel-TaskDist{dist_id}-v0'
     elif env == 'cheetah_vel_avg':
         args, unkown_args = args_cheetah_vel_avg.get_args(rest_args)
     #
