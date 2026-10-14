@@ -37,9 +37,9 @@ class HalfCheetahDirEnv(HalfCheetahEnv):
         super(HalfCheetahDirEnv, self).__init__()
 
     def step(self, action):
-        xposbefore = self.sim.data.qpos[0]
+        xposbefore = self.data.qpos[0]
         self.do_simulation(action, self.frame_skip)
-        xposafter = self.sim.data.qpos[0]
+        xposafter = self.data.qpos[0]
 
         forward_vel = (xposafter - xposbefore) / self.dt
         forward_reward = self.goal_direction * forward_vel
@@ -47,11 +47,12 @@ class HalfCheetahDirEnv(HalfCheetahEnv):
 
         observation = self._get_obs()
         reward = forward_reward - ctrl_cost
-        done = False
+        terminated = False
+        truncated = False
         infos = dict(reward_forward=forward_reward,
                      reward_ctrl=-ctrl_cost,
                      task=self.get_task())
-        return observation, reward, done, infos
+        return observation, reward, terminated, truncated, infos
 
     def sample_tasks(self, n_tasks):
         # for fwd/bwd env, goal direc is backwards if - 1.0, forwards if + 1.0
@@ -111,7 +112,7 @@ class HalfCheetahDirSparseEnv(HalfCheetahDirEnv):
                     raise ValueError
 
     def step(self, action):
-        observation, reward, done, infos = super().step(action)
+        observation, reward, terminated, truncated, infos = super().step(action)
 
         self.update_belief()
 
@@ -120,7 +121,7 @@ class HalfCheetahDirSparseEnv(HalfCheetahDirEnv):
         if np.abs(curr_x_pos) < self.sparse_dist:
             reward = infos['reward_ctrl']
 
-        return observation, reward, done, infos
+        return observation, reward, terminated, truncated, infos
 
     def visualise_behaviour(self,
                             env,

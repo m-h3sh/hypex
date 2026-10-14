@@ -8,11 +8,20 @@ import torch
 import torch.nn.functional as F
 
 from environments.mujoco import rand_param_envs
-# Same loader used by src/hyper (`from gym.envs.registration import load`)
+
 try:
-    from gym.envs.registration import load
+    from gymnasium.envs.registration import load_env_creator as _load_env_creator
 except ImportError:
-    from environments.mujoco.rand_param_envs.gym.envs.registration import load
+    _load_env_creator = None
+
+# Fallback loaders for entry-point strings like "module.path:ClassName"
+try:
+    from gym.envs.registration import load as _gym_load
+except ImportError:
+    try:
+        from environments.mujoco.rand_param_envs.gym.envs.registration import load as _gym_load
+    except ImportError:
+        _gym_load = None
 
 
 try:
@@ -23,8 +32,13 @@ except AttributeError:
 
 
 def mujoco_wrapper(entry_point, **kwargs):
-    # Load the environment from its entry point
-    env_cls = load(entry_point)
+    # Load the environment from its entry point (prefer gymnasium)
+    if _load_env_creator is not None:
+        env_cls = _load_env_creator(entry_point)
+    elif _gym_load is not None:
+        env_cls = _gym_load(entry_point)
+    else:
+        raise ImportError(f"Cannot load mujoco entry point: {entry_point}")
     env = env_cls(**kwargs)
     return env
 

@@ -42,16 +42,17 @@ class HalfCheetahHopEnv(HalfCheetahEnv):
         observation = self._get_obs()
         reward = vertical_reward - ctrl_cost
         reward *= 10
-        done = False
+        terminated = False
+        truncated = False
         infos = dict(vertical_reward=vertical_reward,
                      reward_ctrl=-ctrl_cost,
                      task=self.get_task())
-        return observation, reward, done, infos
+        return observation, reward, terminated, truncated, infos
 
     def debug_prints(self):
-        print("\n\nqpos[1]:", self.sim.data.qpos[1])
+        print("\n\nqpos[1]:", self.data.qpos[1])
         print("self.get_body_com(torso)[2]:", self.get_body_com("torso")[2])
-        print("qpos[:5]:", self.sim.data.qpos[:5])
+        print("qpos[:5]:", self.data.qpos[:5])
         print("self.get_body_com(torso)[:5]:", self.get_body_com("torso")[:5])
         print("goal:", self.goal_z)
 

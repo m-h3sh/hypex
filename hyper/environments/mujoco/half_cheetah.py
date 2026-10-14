@@ -1,38 +1,32 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import torch
-from gym.envs.mujoco import HalfCheetahEnv as HalfCheetahEnv_
+from gymnasium.envs.mujoco.half_cheetah_v4 import HalfCheetahEnv as HalfCheetahEnv_
+from gymnasium.spaces import Box
 
 from utils import helpers as utl
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
+# VariBAD / hyper observation: qpos[1:] (8) + qvel (9) + torso com (3) = 20
+_OBS_DIM = 20
+
 
 class HalfCheetahEnv(HalfCheetahEnv_):
+    """HalfCheetah base on gymnasium MuJoCo, keeping the hyper/VariBAD obs layout."""
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.observation_space = Box(
+            low=-np.inf, high=np.inf, shape=(_OBS_DIM,), dtype=np.float64
+        )
+
     def _get_obs(self):
         return np.concatenate([
-            self.sim.data.qpos.flat[1:],
-            self.sim.data.qvel.flat,
-            self.get_body_com("torso").flat,
+            self.data.qpos.flat[1:],
+            self.data.qvel.flat,
+            np.asarray(self.get_body_com("torso")).flat,
         ]).astype(np.float32).flatten()
-
-    def viewer_setup(self):
-        camera_id = self.model.camera_name2id('track')
-        self.viewer.cam.type = 2
-        self.viewer.cam.fixedcamid = camera_id
-        self.viewer.cam.distance = self.model.stat.extent * 0.35
-        # Hide the overlay
-        self.viewer._hide_overlay = True
-
-    # def render(self, mode='human'):
-    #     width, height = 500, 500
-    #     if mode == 'rgb_array':
-    #         # window size used for old mujoco-py:
-    #         self._get_viewer('rgb_array').render(width, height)
-    #         data = self._get_viewer('rgb_array').read_pixels(width, height, depth=False)
-    #         return data
-    #     elif mode == 'human':
-    #         self._get_viewer('human').render(width, height)
 
     @staticmethod
     def visualise_behaviour(env,
@@ -74,14 +68,9 @@ class HalfCheetahEnv(HalfCheetahEnv_):
         state, belief, task = utl.reset_env(env, args)
         start_state = state.clone()
 
-        # if hasattr(args, 'hidden_size'):
-        #     hidden_state = torch.zeros((1, args.hidden_size)).to(device)
-        # else:
-        #     hidden_state = None
-
         # keep track of what task we're in and the position of the cheetah
         pos = [[] for _ in range(args.max_rollouts_per_task)]
-        torso_index = 2 if plot_z else 0 
+        torso_index = 2 if plot_z else 0
         start_pos = unwrapped_env.get_body_com("torso")[torso_index].copy()
 
         for episode_idx in range(num_episodes):
@@ -167,8 +156,6 @@ class HalfCheetahEnv(HalfCheetahEnv_):
                 plt.xlabel('steps (ep {})'.format(i), fontsize=15)
                 if i == num_episodes - 1:
                     plt.ylabel('position', fontsize=15)
-                # else:
-                #     plt.xticks([])
                 plt.ylim(0, 2)
                 plt.plot([200, 200], [0, 0], 'b--', alpha=0.2)
             else:
@@ -177,8 +164,6 @@ class HalfCheetahEnv(HalfCheetahEnv_):
                 plt.ylabel('steps (ep {})'.format(i), fontsize=15)
                 if i == num_episodes - 1:
                     plt.xlabel('position', fontsize=15)
-                # else:
-                #     plt.xticks([])
                 plt.xlim(min_x - 0.05 * span, max_x + 0.05 * span)
                 plt.plot([0, 0], [200, 200], 'b--', alpha=0.2)
         plt.tight_layout()
