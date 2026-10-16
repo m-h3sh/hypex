@@ -8,3 +8,8 @@ seaborn
 tensorboard
 networkx
 Pillow
+POT>=0.9.4
+scikit-learn>=1.3
+pandas>=2.0
+tqdm>=4.65
+stable-baselines3
