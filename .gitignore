@@ -1,4 +1,7 @@
 data/*
+logs_chevel/
+logs_gridworld/
+logs_gridworld_dense6/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

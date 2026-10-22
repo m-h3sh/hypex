@@ -522,6 +522,31 @@ for _dist_id in range(1, 9):
         kwargs={**_TASK_DIST_KWARGS, 'task_dist': _dist_id},
     )
 
+# Dense twin of the trained sparse MDP (6x6, dense Manhattan reward, H=20,
+# uniform starts). Must match scripts/exp2_copy.ipynb: GridNavi(num_cells=6,
+# num_steps=20, distance_reward=True, possible_goals=goal_positions(k, 6));
+# starting_state is None here so every training reset samples a uniform start
+# (exp2 instead enumerates every start cell when collecting SARS tuples).
+_DENSE6_TASK_DIST_KWARGS = dict(
+    num_cells=6,
+    num_steps=20,
+    distance_reward=True,
+    starting_state=None,
+)
+for _dist_id in range(1, 4):
+    register(
+        f'GridNavi-Dense6-TaskDist{_dist_id}-v0',
+        entry_point='environments.navigation.gridworld:GridNavi',
+        kwargs={**_DENSE6_TASK_DIST_KWARGS, 'task_dist': _dist_id},
+    )
+# Dense6 TD4: every cell is a possible goal (36 goals; goal_positions opt 8).
+# High-cardinality / high-diversity stress test, kept separate from TD1–3.
+register(
+    'GridNavi-Dense6-TaskDist4-v0',
+    entry_point='environments.navigation.gridworld:GridNavi',
+    kwargs={**_DENSE6_TASK_DIST_KWARGS, 'task_dist': 8},
+)
+
 # Paper-style MDP: 6x6, sparse (+1 / -0.1), fixed start (0,0).
 # Orig-v0: all goals except start neighborhood (same as TaskDist 7).
 # TaskDist 1–8: same goal_positions on this Orig MDP (start cell dropped if present).

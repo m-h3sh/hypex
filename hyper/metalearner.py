@@ -76,7 +76,12 @@ class MetaLearner:
         # compute divergence of hn generated policy weights
         self.hn_div_tracker = None
         if getattr(self.args, 'log_hn_weight_div', False) and self.args.use_hypernet:
-            num_cells = int(self.envs.get_env_attr('num_cells'))
+            # GridNavi exposes num_cells; MuJoCo vel tasks do not (1D continuous task).
+            try:
+                num_cells = self.envs.get_env_attr('num_cells')
+                num_cells = int(num_cells) if num_cells is not None else None
+            except Exception:
+                num_cells = None
             self.hn_div_tracker = HNWeightDivergenceTracker(
                 args=self.args,
                 logger=self.logger,

@@ -48,6 +48,12 @@ def main():
         args, unkown_args = args_grid_belief_oracle.get_args(rest_args)
     elif env == 'gridworld_varibad':
         args, unkown_args = args_grid_varibad.get_args(rest_args)
+    elif env.startswith('gridworld_dense6_taskdist'):
+        # e.g. --env-type gridworld_dense6_taskdist3
+        #   → GridNavi-Dense6-TaskDist3-v0 (6x6 dense, H=20; exp2_copy MDP)
+        dist_id = int(env.replace('gridworld_dense6_taskdist', ''))
+        args, unkown_args = args_grid_varibad.get_args(rest_args)
+        args.env_name = f'GridNavi-Dense6-TaskDist{dist_id}-v0'
     elif env.startswith('gridworld_taskdist'):
         # e.g. --env-type gridworld_taskdist3  →  GridNavi-TaskDist3-v0
         dist_id = int(env.replace('gridworld_taskdist', ''))
