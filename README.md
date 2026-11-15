@@ -319,7 +319,7 @@ Only this one TD has been trained, at a single seed.
 
 ### H1 WTE notebooks
 
-`h1_gridworld` (GridNavi), `h1_cheetahvel` (hyper `HalfCheetahVelEnv`), `h1_antdir` (hyper `AntDirEnv`, needs mujoco_py), `h1_cheetahdyn` / `h1_walkerdyn` (`environments/h1_mujoco.py`). Shared analysis: `scripts/wte_h1.py`.
+`h1_gridworld` (GridNavi); `h1_cheetahvel` / `h1_antdir` / `h1_cheetahdyn` / `h1_walkerdyn` via `environments/h1_mujoco.py` (gymnasium, `env.yml` only — AntDir/CheetahVel mirror the hyper reward & obs). Shared analysis: `scripts/wte_h1.py`.
 
 ## Caveats
 

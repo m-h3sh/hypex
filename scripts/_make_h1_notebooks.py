@@ -108,7 +108,7 @@ def load_fn_for(reward):
         return np.load(_dir(reward, seed) / f"goal_{task[0]}_{task[1]}.npy")
     return load'''
 
-# CheetahVel / AntDir: hyper training envs. Dyn: environments/h1_mujoco.py.
+# All MuJoCo H1 notebooks use environments/h1_mujoco.py (gymnasium / env.yml).
 
 CHEVEL_CFG = '''\
 import sys
@@ -116,12 +116,10 @@ from pathlib import Path
 import numpy as np, pandas as pd
 
 CODE_DIR = Path.cwd().parent if Path.cwd().name == "scripts" else Path.cwd()
-HYPER_DIR = CODE_DIR / "hyper" if (CODE_DIR / "hyper").is_dir() else CODE_DIR
-for _p in (str(HYPER_DIR), str(CODE_DIR / "scripts")):
+for _p in (str(CODE_DIR), str(CODE_DIR / "scripts")):
     if _p not in sys.path:
         sys.path.insert(0, _p)
-import environments  # registers hyper envs
-from environments.mujoco.half_cheetah_vel import HalfCheetahVelEnv
+from environments.h1_mujoco import HalfCheetahVelEnv  # mirrors hyper HalfCheetahVelEnv
 import wte_h1 as h1
 
 EP_LEN, N_EPISODES = 200, 25
@@ -140,9 +138,10 @@ ALL_TASKS = [t for ts in TASK_DISTS.values() for t in ts]
 
 _probe = HalfCheetahVelEnv(max_episode_steps=EP_LEN)
 _o, _ = _probe.reset()
-SPEC = dict(obs_dim=int(np.ravel(_o).shape[0]),   # hyper obs = 20
+SPEC = dict(obs_dim=int(np.ravel(_o).shape[0]),   # 20, same as hyper
             a_cols=int(_probe.action_space.shape[0]),
             discrete=False, n_actions=None)
+_probe.close()
 
 def _dir(reward, seed):
     return DATA / f"seed{seed}"
@@ -165,6 +164,7 @@ def collect(reward, seed):
             if term or trunc:
                 env.reset_task(vel); obs, _ = env.reset()
         np.save(f, np.asarray(rows[:N], dtype=np.float64))
+    env.close()
 
 def load_fn_for(reward):
     def load(task, seed):
@@ -177,12 +177,10 @@ from pathlib import Path
 import numpy as np, pandas as pd
 
 CODE_DIR = Path.cwd().parent if Path.cwd().name == "scripts" else Path.cwd()
-HYPER_DIR = CODE_DIR / "hyper" if (CODE_DIR / "hyper").is_dir() else CODE_DIR
-for _p in (str(HYPER_DIR), str(CODE_DIR / "scripts")):
+for _p in (str(CODE_DIR), str(CODE_DIR / "scripts")):
     if _p not in sys.path:
         sys.path.insert(0, _p)
-import environments  # registers hyper envs
-from environments.mujoco.ant_dir import AntDirEnv
+from environments.h1_mujoco import AntDirEnv  # mirrors hyper AntDirEnv (no mujoco_py)
 import wte_h1 as h1
 
 EP_LEN = 200
@@ -201,25 +199,12 @@ TASK_DISTS = {
 }
 ALL_TASKS = [t for ts in TASK_DISTS.values() for t in ts]
 
-def _reset(env, seed=None):
-    """hyper AntDir is old-gym style (obs) or (obs, info)."""
-    out = env.reset() if seed is None else env.reset(seed=seed)
-    return out[0] if isinstance(out, tuple) else out
-
-def _step(env, a):
-    """Returns (nobs, reward, done). Handles 4- or 5-tuple step."""
-    out = env.step(a)
-    if len(out) == 5:
-        nobs, r, term, trunc, _ = out
-        return nobs, r, bool(term or trunc)
-    nobs, r, done, _ = out
-    return nobs, r, bool(done)
-
 _probe = AntDirEnv(max_episode_steps=EP_LEN)
-_o = _reset(_probe)
-SPEC = dict(obs_dim=int(np.ravel(_o).shape[0]),
+_o, _ = _probe.reset()
+SPEC = dict(obs_dim=int(np.ravel(_o).shape[0]),   # 27, same layout as hyper Ant
             a_cols=int(_probe.action_space.shape[0]),
             discrete=False, n_actions=None)
+_probe.close()
 
 def _dir(reward, seed):
     return DATA / f"seed{seed}"
@@ -232,17 +217,17 @@ def collect(reward, seed):
         f = out / f"dir_{ang:.6f}.npy"
         if f.exists():
             continue
-        env.set_task(ang)
-        obs = _reset(env)
+        env.set_task(ang); obs, _ = env.reset(seed=int(rng.integers(1_000_000)))
         rows = []
         while len(rows) < N:
             a = rng.uniform(env.action_space.low, env.action_space.high)
-            nobs, r, done = _step(env, a)
+            nobs, r, term, trunc, _ = env.step(a)
             rows.append(np.concatenate([np.ravel(obs), np.ravel(a), [r], np.ravel(nobs)]))
             obs = nobs
-            if done:
-                env.set_task(ang); obs = _reset(env)
+            if term or trunc:
+                env.set_task(ang); obs, _ = env.reset()
         np.save(f, np.asarray(rows[:N], dtype=np.float64))
+    env.close()
 
 def load_fn_for(reward):
     def load(task, seed):
@@ -388,11 +373,12 @@ if _rebuild_grid:
           "control (~floor) and is identical across the two rewards.", GRID_CFG)
 
 build(SCRIPTS / "h1_cheetahvel.ipynb", "HalfCheetahVel",
-      "Goal-varying (target velocity). Uses hyper `HalfCheetahVelEnv` (20-d obs). "
-      "`(s,a,s')` is the negative control.", CHEVEL_CFG)
+      "Goal-varying (target velocity). `h1_mujoco.HalfCheetahVelEnv` mirrors hyper "
+      "(20-d obs, same reward). `(s,a,s')` is the negative control.", CHEVEL_CFG)
 
 build(SCRIPTS / "h1_antdir.ipynb", "AntDir",
-      "Goal-varying (walking direction). Uses hyper `AntDirEnv` (needs mujoco_py). "
+      "Goal-varying (walking direction). `h1_mujoco.AntDirEnv` mirrors hyper AntDir "
+      "(obs/reward/termination; gymnasium backend, no mujoco_py). "
       "A random ant barely moves, so expect small `(s,a,r)` excess.", ANTDIR_CFG)
 
 build(SCRIPTS / "h1_walkerdyn.ipynb", "Walker2D randomised physics",
