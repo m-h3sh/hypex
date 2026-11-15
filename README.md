@@ -302,19 +302,24 @@ Only this one TD has been trained, at a single seed.
 
 | Path | Contents |
 |------|----------|
-| `env.yml` | Conda env (`adv_rl`): Python 3.10, PyTorch, POT, gym, sklearn, etc. |
+| `env.yml` | Conda env (`adv_rl`): Python 3.10, PyTorch, POT, gymnasium[mujoco], sklearn, etc. |
 | `scripts/exp2.ipynb` | GridWorld WTE probe, **sparse** reward + sparse training analysis |
 | `scripts/exp2_copy.ipynb` | GridWorld WTE probe, **dense** reward (incl. 36-goal TD4) + dense training analysis |
 | `scripts/exp9.ipynb` | HalfCheetahVel WTE probe (5 velocity TDs) + CheetahVel training analysis |
+| `scripts/h1_*.ipynb` | H1 excess / floor notebooks (one per env); shared math in `scripts/wte_h1.py` |
 | `scripts/detect.py` | `Detect` class: SARS preprocessing, reference set, LWE/WTE via optimal transport |
 | `bash_scripts/run_exp.sh` | GridWorld dense6 training: TD1–TD4 × full/head/film |
 | `bash_scripts/run_chevel.sh` | HalfCheetahVel training: full/head/film on TaskDist3 |
 | `hyper/` | Training code (`main.py` entry point, env registrations in `environments/__init__.py`) |
-| `environments/` | Root-level `GridNavi` used by the notebooks' data collection |
-| `data/` | Saved SARS arrays (`gridworld_sparse/`, `gridworld_dense6/`, `chevel/`) |
+| `environments/` | `GridNavi` + `h1_mujoco.py` (gymnasium CheetahDyn/WalkerDyn for H1) |
+| `data/` | Saved SARS arrays (`gridworld_sparse/`, `gridworld_dense6/`, `chevel/`, `*_h1/`) |
 | `logs_gridworld/` | Sparse GridWorld training logs (4M frames, seed 73) |
 | `logs_gridworld_dense6/` | Dense GridWorld training logs (2M frames, seed 73) |
 | `logs_chevel/` | HalfCheetahVel TaskDist3 training logs (~25–27M frames, seed 73) |
+
+### H1 WTE notebooks
+
+`h1_gridworld` (GridNavi), `h1_cheetahvel` (hyper `HalfCheetahVelEnv`), `h1_antdir` (hyper `AntDirEnv`, needs mujoco_py), `h1_cheetahdyn` / `h1_walkerdyn` (`environments/h1_mujoco.py`). Shared analysis: `scripts/wte_h1.py`.
 
 ## Caveats
 
