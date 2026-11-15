@@ -388,6 +388,5 @@ build(SCRIPTS / "h1_walkerdyn.ipynb", "Walker2D randomised physics",
 
 build(SCRIPTS / "h1_cheetahdyn.ipynb", "HalfCheetah randomised physics",
       "Physics-varying (`L` in {0.5, 1.5, 3}): `(s,a,s')` carries the signal. "
-      "Gymnasium HalfCheetah + RandomEnv-style param scaling (`h1_mujoco.py`). "
-      "Legacy `HalfCheetahRandParams-v0` (mujoco_py) is also registered for training.",
+      "Gymnasium HalfCheetah + RandomEnv-style param scaling (`h1_mujoco.py`).",
       CHEETAHDYN_CFG)

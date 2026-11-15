@@ -321,6 +321,20 @@ Only this one TD has been trained, at a single seed.
 
 `h1_gridworld` (GridNavi); `h1_cheetahvel` / `h1_antdir` / `h1_cheetahdyn` / `h1_walkerdyn` via `environments/h1_mujoco.py` (gymnasium, `env.yml` only — AntDir/CheetahVel mirror the hyper reward & obs). Shared analysis: `scripts/wte_h1.py`.
 
+**Generate presentation tables** (excess = d(T)−F for L2/cosine, both `(s,a,r)` and `(s,a,s')`, plus metric checks):
+
+```bash
+conda activate adv_rl
+# optional: python scripts/_make_h1_notebooks.py   # regenerate from template
+jupyter nbconvert --to notebook --execute --inplace scripts/h1_gridworld.ipynb
+jupyter nbconvert --to notebook --execute --inplace scripts/h1_cheetahvel.ipynb
+jupyter nbconvert --to notebook --execute --inplace scripts/h1_antdir.ipynb
+jupyter nbconvert --to notebook --execute --inplace scripts/h1_cheetahdyn.ipynb
+jupyter nbconvert --to notebook --execute --inplace scripts/h1_walkerdyn.ipynb
+```
+
+Each notebook collects trajectories under `data/*_h1/` (GridWorld: `data/grid6/`), then prints the excess and classification tables. MuJoCo collection is slow on first run (5 seeds × 8 tasks × 3 TDs × ~5k transitions).
+
 ## Caveats
 
 - **All training results are single-seed (73).** Method gaps of ±2–5 return
